@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{ts,js,vue}\" --fix",
     "type-check": "tsc --noEmit",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "mock": "json-server --watch db.json --port 3001"
   },
   "dependencies": {
     "@tanstack/vue-query": "^5.90.2",
@@ -29,6 +30,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-vue": "^10.5.0",
     "husky": "^8.0.0",
+    "json-server": "1.0.0-beta.3",
     "lint-staged": "^16.2.1",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",

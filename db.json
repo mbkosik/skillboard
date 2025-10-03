@@ -1,0 +1,10 @@
+{
+  "users": [
+    { "id": 1, "name": "Jan Kowalski", "email": "jan@example.com" },
+    { "id": 2, "name": "Anna Nowak", "email": "anna@example.com" }
+  ],
+  "projects": [
+    { "id": 1, "title": "Projekt A", "ownerId": 1 },
+    { "id": 2, "title": "Projekt B", "ownerId": 2 }
+  ]
+}
