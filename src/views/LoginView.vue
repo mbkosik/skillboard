@@ -36,6 +36,6 @@ const handleLogin = async (payload: { email: string; password: string }) => {
 <template>
   <AuthLayout>
     <LoginForm :is-submitting="isSubmitting" @login="handleLogin" />
-    <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
+    <p class="min-h-[1.25rem] mt-2 text-sm text-red-600">{{ error }}</p>
   </AuthLayout>
 </template>

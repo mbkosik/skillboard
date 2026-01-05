@@ -26,7 +26,7 @@
             :disabled="isSubmitting"
             @blur="emailTouched = true"
           />
-          <p v-if="emailError" id="email-error" class="text-red-500 text-sm mt-1">
+          <p id="email-error" class="min-h-[1.25rem] text-red-500 text-sm mt-1">
             {{ emailError }}
           </p>
         </div>
@@ -43,7 +43,7 @@
             :disabled="isSubmitting"
             @blur="passwordTouched = true"
           />
-          <p v-if="passwordError" id="password-error" class="text-red-500 text-sm mt-1">
+          <p id="password-error" class="min-h-[1.25rem] text-red-500 text-sm mt-1">
             {{ passwordError }}
           </p>
         </div>
