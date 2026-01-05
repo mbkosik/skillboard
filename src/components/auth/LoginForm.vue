@@ -1,10 +1,17 @@
 <template>
-  <Card class="max-w-md w-full">
+  <Card class="max-w-md w-full shadow-sm border border-gray-200">
     <CardHeader>
-      <CardTitle>Login</CardTitle>
-      <CardDescription>Enter your credentials to access your account.</CardDescription>
+      <div
+        class="mx-auto mb-4 h-10 w-10 rounded-full bg-gray-900/10 flex items-center justify-center"
+      >
+        <span class="text-gray-900 font-bold">SB</span>
+      </div>
+      <CardTitle class="text-2xl font-semibold text-gray-900">Login</CardTitle>
+      <CardDescription class="text-sm text-gray-500">
+        Enter your credentials to access your account.
+      </CardDescription>
     </CardHeader>
-    <CardContent>
+    <CardContent class="space-y-6">
       <form @submit.prevent="handleSubmit">
         <div class="mb-4">
           <Label for="email">Email</Label>
@@ -40,7 +47,7 @@
             {{ passwordError }}
           </p>
         </div>
-        <Button type="submit" class="w-full" :disabled="hasErrors || isSubmitting">
+        <Button type="submit" class="w-full h-11 text-base" :disabled="hasErrors || isSubmitting">
           {{ isSubmitting ? 'Logging in...' : 'Login' }}
         </Button>
       </form>
