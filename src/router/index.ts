@@ -3,19 +3,14 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 // deklaracja tras
 const routes: RouteRecordRaw[] = [
   {
-    path: '/',
-    name: 'home',
-    component: () => import('@/views/HomeView.vue'),
-  },
-  {
-    path: '/about',
-    name: 'about',
-    component: () => import('@/views/AboutView.vue'),
-  },
-  {
     path: '/login',
     name: 'login',
     component: () => import('@/views/LoginView.vue'),
+  },
+  {
+    path: '/dashboard',
+    name: 'dashboard',
+    component: () => import('@/views/DashboardView.vue'),
   },
 ]
 
