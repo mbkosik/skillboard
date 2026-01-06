@@ -12,5 +12,12 @@
       "email": "anna@example.com",
       "password": "password"
     }
+  ],
+  "skills": [
+    { "id": 1, "name": "Vue", "progress": 75 },
+    { "id": 2, "name": "TypeScript", "progress": 65 },
+    { "id": 3, "name": "Tailwind CSS", "progress": 50 },
+    { "id": 4, "name": "HTML & Accessibility", "progress": 85 },
+    { "id": 5, "name": "Testing (Jest/Playwright)", "progress": 30 }
   ]
 }
