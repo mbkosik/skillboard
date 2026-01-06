@@ -9,12 +9,12 @@ async function handleResponse<T>(res: Response, endpoint: string): Promise<T> {
     throw new Error(`HTTP ${res.status} when requesting ${endpoint}`)
   }
 
-  const data = await res.json()
-
   const contentType = res.headers.get('content-type')
   if (!contentType?.includes('application/json')) {
     throw new Error(`Expected JSON from ${endpoint}`)
   }
+
+  const data = await res.json()
 
   return data as T
 }
@@ -28,5 +28,21 @@ export async function getSkills(): Promise<Skill[]> {
 export async function getSkillById(id: number): Promise<Skill> {
   const endpoint = `/skills/${id}`
   const res = await fetch(endpoint)
+  return handleResponse<Skill>(res, endpoint)
+}
+
+export type CreateSkillPayload = {
+  name: string
+  progress: number
+}
+
+export async function createSkill(payload: CreateSkillPayload): Promise<Skill> {
+  const endpoint = '/skills'
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+
   return handleResponse<Skill>(res, endpoint)
 }

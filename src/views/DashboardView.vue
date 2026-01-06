@@ -1,8 +1,14 @@
 <template>
   <DefaultLayout>
-    <header class="mb-6">
-      <h2 class="text-3xl font-bold">My Skills</h2>
-      <p class="mt-2 text-sm text-muted-foreground">Overview of your skills and progress.</p>
+    <header class="mb-6 flex items-center justify-between">
+      <div>
+        <h2 class="text-3xl font-bold">My Skills</h2>
+        <p class="mt-2 text-sm text-muted-foreground">Overview of your skills and progress.</p>
+      </div>
+
+      <div>
+        <CreateSkillModal :loading="isPending" @create="handleCreate" />
+      </div>
     </header>
 
     <section aria-labelledby="skills-heading" class="grid gap-4">
@@ -41,12 +47,26 @@
 
 <script setup lang="ts">
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
-import { useQuery } from '@tanstack/vue-query'
-import { getSkills, type Skill } from '@/api/skills'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/vue-query'
+import { getSkills, createSkill, type Skill, type CreateSkillPayload } from '@/api/skills'
 import SkillCard from '@/components/skills/SkillCard.vue'
+import CreateSkillModal from '@/components/skills/CreateSkillModal.vue'
+
+const queryClient = useQueryClient()
 
 const { data, isLoading, error } = useQuery<Skill[], Error>({
   queryKey: ['skills'],
   queryFn: getSkills,
 })
+
+const { mutateAsync: mutateCreateSkill, isPending } = useMutation({
+  mutationFn: (payload: CreateSkillPayload) => createSkill(payload),
+  onSuccess: async () => {
+    await queryClient.invalidateQueries({ queryKey: ['skills'] })
+  },
+})
+
+async function handleCreate(payload: CreateSkillPayload) {
+  await mutateCreateSkill(payload)
+}
 </script>
