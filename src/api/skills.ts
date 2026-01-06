@@ -10,6 +10,12 @@ async function handleResponse<T>(res: Response, endpoint: string): Promise<T> {
   }
 
   const data = await res.json()
+
+  const contentType = res.headers.get('content-type')
+  if (!contentType?.includes('application/json')) {
+    throw new Error(`Expected JSON from ${endpoint}`)
+  }
+
   return data as T
 }
 
