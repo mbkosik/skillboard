@@ -8,6 +8,7 @@
     <section aria-labelledby="skills-heading" class="grid gap-4">
       <h3 id="skills-heading" class="text-lg font-medium mb-2">Skills list</h3>
 
+      <!-- TODO: optionally add skeleton card -->
       <!-- Loading state -->
       <div
         v-if="isLoading"
@@ -31,18 +32,9 @@
         </p>
       </div>
 
-      <!-- Data state -->
-      <!-- TODO: replace with <SkillCard /> -->
-      <ul v-else class="space-y-3">
-        <li
-          v-for="skill in data"
-          :key="skill.id"
-          class="p-4 border rounded-lg bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 flex justify-between items-center"
-        >
-          <div class="font-medium">{{ skill.name }}</div>
-          <div class="text-sm text-gray-500">{{ skill.progress }}%</div>
-        </li>
-      </ul>
+      <div v-else class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <SkillCard v-for="skill in data" :key="skill.id" :skill="skill" />
+      </div>
     </section>
   </DefaultLayout>
 </template>
@@ -51,6 +43,7 @@
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { useQuery } from '@tanstack/vue-query'
 import { getSkills, type Skill } from '@/api/skills'
+import SkillCard from '@/components/skills/SkillCard.vue'
 
 const { data, isLoading, error } = useQuery<Skill[], Error>({
   queryKey: ['skills'],
