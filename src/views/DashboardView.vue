@@ -39,18 +39,51 @@
       </div>
 
       <div v-else class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        <SkillCard v-for="skill in data" :key="skill.id" :skill="skill" />
+        <SkillCard
+          v-for="skill in data"
+          :key="skill.id"
+          :skill="skill"
+          @edit="openEditModal"
+          @delete="openDeleteDialog"
+        />
       </div>
     </section>
+
+    <EditSkillModal
+      :skill="selectedSkill"
+      :open="editOpen"
+      :loading="isUpdating"
+      @update="handleUpdate"
+      @update:open="(v) => (editOpen = v)"
+    />
+
+    <DeleteConfirmDialog
+      :skill="deleteSkillCandidate"
+      :open="deleteOpen"
+      :loading="isDeleting"
+      @confirm="handleDeleteConfirmed"
+      @update:open="(v) => (deleteOpen = v)"
+    />
   </DefaultLayout>
 </template>
 
 <script setup lang="ts">
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
+import { ref } from 'vue'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/vue-query'
-import { getSkills, createSkill, type Skill, type CreateSkillPayload } from '@/api/skills'
+import {
+  getSkills,
+  createSkill,
+  updateSkill,
+  deleteSkill,
+  type Skill,
+  type CreateSkillPayload,
+  type UpdateSkillPayload,
+} from '@/api/skills'
 import SkillCard from '@/components/skills/SkillCard.vue'
 import CreateSkillModal from '@/components/skills/CreateSkillModal.vue'
+import EditSkillModal from '@/components/skills/EditSkillModal.vue'
+import DeleteConfirmDialog from '@/components/skills/DeleteConfirmDialog.vue'
 
 const queryClient = useQueryClient()
 
@@ -66,7 +99,79 @@ const { mutateAsync: mutateCreateSkill, isPending } = useMutation({
   },
 })
 
+const selectedSkill = ref<Skill | null>(null)
+const editOpen = ref(false)
+const deleteSkillCandidate = ref<Skill | null>(null)
+const deleteOpen = ref(false)
+
+const { mutateAsync: mutateUpdateSkill, isPending: isUpdating } = useMutation({
+  mutationFn: ({ id, payload }: { id: number; payload: UpdateSkillPayload }) =>
+    updateSkill(id, payload),
+  onMutate: async ({ id, payload }) => {
+    await queryClient.cancelQueries({ queryKey: ['skills'] })
+    const previous = queryClient.getQueryData<Skill[]>(['skills'])
+
+    queryClient.setQueryData<Skill[] | undefined>(['skills'], (old) =>
+      old ? old.map((s) => (s.id === id ? { ...s, ...payload } : s)) : old
+    )
+
+    return { previous }
+  },
+  onError: (_err, _vars, context) => {
+    if (context?.previous) {
+      queryClient.setQueryData(['skills'], context.previous)
+    }
+  },
+  onSettled: async () => {
+    await queryClient.invalidateQueries({ queryKey: ['skills'] })
+  },
+})
+
+const { mutateAsync: mutateDeleteSkill, isPending: isDeleting } = useMutation({
+  mutationFn: (id: number) => deleteSkill(id),
+  onMutate: async (id: number) => {
+    await queryClient.cancelQueries({ queryKey: ['skills'] })
+    const previous = queryClient.getQueryData<Skill[]>(['skills'])
+
+    queryClient.setQueryData<Skill[] | undefined>(['skills'], (old) =>
+      old ? old.filter((s) => s.id !== id) : old
+    )
+
+    return { previous }
+  },
+  onError: (_err, _vars, context) => {
+    if (context?.previous) {
+      queryClient.setQueryData(['skills'], context.previous)
+    }
+  },
+  onSettled: async () => {
+    await queryClient.invalidateQueries({ queryKey: ['skills'] })
+  },
+})
+
 async function handleCreate(payload: CreateSkillPayload) {
   await mutateCreateSkill(payload)
+}
+
+function openEditModal(skill: Skill) {
+  selectedSkill.value = skill
+  editOpen.value = true
+}
+
+function openDeleteDialog(id: number) {
+  const skill = data?.value?.find((s) => s.id === id) ?? null
+  deleteSkillCandidate.value = skill
+  deleteOpen.value = true
+}
+
+async function handleUpdate(payload: { id: number; name: string; progress: number }) {
+  await mutateUpdateSkill({
+    id: payload.id,
+    payload: { name: payload.name, progress: payload.progress },
+  })
+}
+
+async function handleDeleteConfirmed(id: number) {
+  await mutateDeleteSkill(id)
 }
 </script>

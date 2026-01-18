@@ -46,3 +46,28 @@ export async function createSkill(payload: CreateSkillPayload): Promise<Skill> {
 
   return handleResponse<Skill>(res, endpoint)
 }
+
+export type UpdateSkillPayload = {
+  name: string
+  progress: number
+}
+
+export async function updateSkill(id: number, payload: UpdateSkillPayload): Promise<Skill> {
+  const endpoint = `/skills/${id}`
+  const res = await fetch(endpoint, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+
+  return handleResponse<Skill>(res, endpoint)
+}
+
+export async function deleteSkill(id: number): Promise<void> {
+  const endpoint = `/skills/${id}`
+  const res = await fetch(endpoint, { method: 'DELETE' })
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} when requesting ${endpoint}`)
+  }
+  return
+}
