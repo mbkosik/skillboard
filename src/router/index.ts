@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
-// deklaracja tras
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
@@ -17,9 +16,13 @@ const routes: RouteRecordRaw[] = [
     name: 'dashboard',
     component: () => import('@/views/DashboardView.vue'),
   },
+  {
+    path: '/skills/:id',
+    name: 'skillDetails',
+    component: () => import('@/views/SkillDetailsView.vue'),
+  },
 ]
 
-// tworzymy instancję routera
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
