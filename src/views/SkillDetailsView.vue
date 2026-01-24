@@ -60,8 +60,9 @@
             <Button
               :disabled="mutation.status.value === 'pending' || !!validationError"
               type="submit"
-              >Save</Button
             >
+              Save
+            </Button>
             <Button
               variant="ghost"
               @click="resetInput"

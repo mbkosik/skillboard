@@ -12,9 +12,12 @@
     </header>
 
     <section aria-labelledby="skills-heading" class="grid gap-4">
+      <Card class="p-4">
+        <SkillsFilters v-model:sort="sort" v-model:progress="progress" />
+      </Card>
+
       <h3 id="skills-heading" class="text-lg font-medium mb-2">Skills list</h3>
 
-      <!-- TODO: optionally add skeleton card -->
       <!-- Loading state -->
       <div
         v-if="isLoading"
@@ -28,7 +31,7 @@
         <p class="text-sm">Failed to load skills: {{ error.message }}</p>
       </div>
 
-      <!-- Empty state -->
+      <!-- Empty state: no skills at all -->
       <div
         v-else-if="data && data.length === 0"
         class="p-6 border rounded-lg bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
@@ -38,9 +41,17 @@
         </p>
       </div>
 
+      <!-- Empty state: no skills match filters -->
+      <div
+        v-else-if="data && filteredAndSorted.length === 0"
+        class="p-6 border rounded-lg bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+      >
+        <p class="text-sm text-muted-foreground">No skills match the selected filters.</p>
+      </div>
+
       <div v-else class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <SkillCard
-          v-for="skill in data"
+          v-for="skill in filteredAndSorted"
           :key="skill.id"
           :skill="skill"
           @edit="openEditModal"
@@ -69,8 +80,18 @@
 
 <script setup lang="ts">
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/vue-query'
+import { useRoute, useRouter } from 'vue-router'
+import SkillsFilters from '@/components/skills/SkillsFilters.vue'
+import {
+  filterSkills,
+  sortSkills,
+  VALID_SORTS,
+  VALID_PROGRESS,
+  type SortParam,
+  type ProgressFilter,
+} from '@/lib/skillFilters'
 import {
   getSkills,
   createSkill,
@@ -84,6 +105,7 @@ import SkillCard from '@/components/skills/SkillCard.vue'
 import CreateSkillModal from '@/components/skills/CreateSkillModal.vue'
 import EditSkillModal from '@/components/skills/EditSkillModal.vue'
 import DeleteConfirmDialog from '@/components/skills/DeleteConfirmDialog.vue'
+import { Card } from '@/components/ui/card'
 
 const queryClient = useQueryClient()
 
@@ -103,6 +125,38 @@ const selectedSkill = ref<Skill | null>(null)
 const editOpen = ref(false)
 const deleteSkillCandidate = ref<Skill | null>(null)
 const deleteOpen = ref(false)
+
+const route = useRoute()
+const router = useRouter()
+
+const sort = computed<SortParam>({
+  get() {
+    const q = route.query
+    const s = Array.isArray(q.sort) ? q.sort[0] : (q.sort as string | undefined)
+    return VALID_SORTS.includes(s as any) ? (s as SortParam) : 'name_asc'
+  },
+  set(v) {
+    router.replace({ query: { ...(route.query || {}), sort: v } })
+  },
+})
+
+const progress = computed<ProgressFilter>({
+  get() {
+    const q = route.query
+    const p = Array.isArray(q.progress) ? q.progress[0] : (q.progress as string | undefined)
+    return VALID_PROGRESS.includes(p as any) ? (p as ProgressFilter) : 'all'
+  },
+  set(v) {
+    router.replace({ query: { ...(route.query || {}), progress: v } })
+  },
+})
+
+const skillsRaw = computed(() => data?.value ?? [])
+
+const filteredAndSorted = computed(() => {
+  const filtered = filterSkills(skillsRaw.value, progress.value as ProgressFilter)
+  return sortSkills(filtered, sort.value as SortParam)
+})
 
 const { mutateAsync: mutateUpdateSkill, isPending: isUpdating } = useMutation({
   mutationFn: ({ id, payload }: { id: number; payload: UpdateSkillPayload }) =>
