@@ -82,7 +82,7 @@
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { ref, computed } from 'vue'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/vue-query'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouteQueryParam } from '@/composables/useRouteQueryParam'
 import SkillsFilters from '@/components/skills/SkillsFilters.vue'
 import {
   filterSkills,
@@ -126,29 +126,14 @@ const editOpen = ref(false)
 const deleteSkillCandidate = ref<Skill | null>(null)
 const deleteOpen = ref(false)
 
-const route = useRoute()
-const router = useRouter()
-
-const sort = computed<SortParam>({
-  get() {
-    const q = route.query
-    const s = Array.isArray(q.sort) ? q.sort[0] : (q.sort as string | undefined)
-    return VALID_SORTS.includes(s as any) ? (s as SortParam) : 'name_asc'
-  },
-  set(v) {
-    router.replace({ query: { ...(route.query || {}), sort: v } })
-  },
+const sort = useRouteQueryParam<SortParam>('sort', {
+  default: 'name_asc',
+  allowed: VALID_SORTS,
 })
 
-const progress = computed<ProgressFilter>({
-  get() {
-    const q = route.query
-    const p = Array.isArray(q.progress) ? q.progress[0] : (q.progress as string | undefined)
-    return VALID_PROGRESS.includes(p as any) ? (p as ProgressFilter) : 'all'
-  },
-  set(v) {
-    router.replace({ query: { ...(route.query || {}), progress: v } })
-  },
+const progress = useRouteQueryParam<ProgressFilter>('progress', {
+  default: 'all',
+  allowed: VALID_PROGRESS,
 })
 
 const skillsRaw = computed(() => data?.value ?? [])
