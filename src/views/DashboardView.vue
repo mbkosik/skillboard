@@ -12,9 +12,16 @@
     </header>
 
     <section aria-labelledby="skills-heading" class="grid gap-4">
-      <Card class="p-4 flex flex-row">
-        <SkillSearch v-model="search" />
-        <SkillsFilters v-model:sort="sort" v-model:progress="progress" />
+      <Card class="p-4 flex flex-col sm:flex-row items-center gap-4">
+        <div class="w-full sm:w-96">
+          <Input v-model="rawSearch" aria-label="Search skills" placeholder="Search skills" />
+        </div>
+        <div class="ml-auto flex items-center gap-2">
+          <SkillsFilters v-model:sort="sort" v-model:progress="progress" />
+          <Button variant="ghost" size="sm" :disabled="!hasActiveFilters" @click="resetFilters">
+            Reset
+          </Button>
+        </div>
       </Card>
 
       <h3 id="skills-heading" class="text-lg font-medium mb-2">Skills list</h3>
@@ -81,11 +88,13 @@
 
 <script setup lang="ts">
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/vue-query'
 import { useRouteQueryParam } from '@/composables/useRouteQueryParam'
-import SkillSearch from '@/components/skills/SkillSearch.vue'
+import { Input } from '@/components/ui/input'
+import { useDebounce } from '@/composables/useDebounce'
 import SkillsFilters from '@/components/skills/SkillsFilters.vue'
+import { Button } from '@/components/ui/button'
 import {
   filterSkills,
   sortSkills,
@@ -142,12 +151,39 @@ const search = useRouteQueryParam<string>('q', {
   default: '',
 })
 
+const rawSearch = ref<string>(search.value ?? '')
+const debouncedSearch = useDebounce(rawSearch, 300)
+
+watch(debouncedSearch, (v) => {
+  const val = (v ?? '') as string
+  if (val !== search.value) search.value = val
+})
+
+watch(
+  () => search.value,
+  (v) => {
+    const val = v ?? ''
+    if (val !== rawSearch.value) rawSearch.value = val
+  }
+)
+
+const hasActiveFilters = computed(
+  () => search.value !== '' || sort.value !== 'name_asc' || progress.value !== 'all'
+)
+
+function resetFilters() {
+  search.value = ''
+  rawSearch.value = ''
+  sort.value = 'name_asc'
+  progress.value = 'all'
+}
+
 const skillsRaw = computed(() => data?.value ?? [])
 
 const filteredAndSorted = computed(() => {
   const afterProgress = filterSkills(skillsRaw.value, progress.value as ProgressFilter)
 
-  const q = search.value?.trim().toLowerCase() ?? ''
+  const q = search.value.trim().toLowerCase() ?? ''
   const afterSearch = q
     ? afterProgress.filter((s) => s.name.toLowerCase().includes(q))
     : afterProgress

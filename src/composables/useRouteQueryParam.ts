@@ -1,11 +1,11 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import type { ComputedRef } from 'vue'
+import type { WritableComputedRef } from 'vue'
 
 export function useRouteQueryParam<T extends string>(
   key: string,
   options: { default: T; allowed?: readonly T[] }
-): ComputedRef<T> {
+): WritableComputedRef<T> {
   const route = useRoute()
   const router = useRouter()
 
