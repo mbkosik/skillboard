@@ -12,7 +12,8 @@
     </header>
 
     <section aria-labelledby="skills-heading" class="grid gap-4">
-      <Card class="p-4">
+      <Card class="p-4 flex flex-row">
+        <SkillSearch v-model="search" />
         <SkillsFilters v-model:sort="sort" v-model:progress="progress" />
       </Card>
 
@@ -83,6 +84,7 @@ import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { ref, computed } from 'vue'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/vue-query'
 import { useRouteQueryParam } from '@/composables/useRouteQueryParam'
+import SkillSearch from '@/components/skills/SkillSearch.vue'
 import SkillsFilters from '@/components/skills/SkillsFilters.vue'
 import {
   filterSkills,
@@ -136,11 +138,21 @@ const progress = useRouteQueryParam<ProgressFilter>('progress', {
   allowed: VALID_PROGRESS,
 })
 
+const search = useRouteQueryParam<string>('q', {
+  default: '',
+})
+
 const skillsRaw = computed(() => data?.value ?? [])
 
 const filteredAndSorted = computed(() => {
-  const filtered = filterSkills(skillsRaw.value, progress.value as ProgressFilter)
-  return sortSkills(filtered, sort.value as SortParam)
+  const afterProgress = filterSkills(skillsRaw.value, progress.value as ProgressFilter)
+
+  const q = search.value?.trim().toLowerCase() ?? ''
+  const afterSearch = q
+    ? afterProgress.filter((s) => s.name.toLowerCase().includes(q))
+    : afterProgress
+
+  return sortSkills(afterSearch, sort.value as SortParam)
 })
 
 const { mutateAsync: mutateUpdateSkill, isPending: isUpdating } = useMutation({
