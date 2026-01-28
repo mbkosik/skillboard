@@ -93,6 +93,7 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/vue-query'
 import { useRouteQueryParam } from '@/composables/useRouteQueryParam'
 import { Input } from '@/components/ui/input'
 import { useDebounce } from '@/composables/useDebounce'
+import { toastSuccess, toastError } from '@/lib/toast'
 import SkillsFilters from '@/components/skills/SkillsFilters.vue'
 import { Button } from '@/components/ui/button'
 import {
@@ -129,6 +130,11 @@ const { mutateAsync: mutateCreateSkill, isPending } = useMutation({
   mutationFn: (payload: CreateSkillPayload) => createSkill(payload),
   onSuccess: async () => {
     await queryClient.invalidateQueries({ queryKey: ['skills'] })
+    toastSuccess('Skill created')
+  },
+  onError: (err: unknown) => {
+    const msg = (err as Error)?.message ?? 'Failed to create skill'
+    toastError(msg)
   },
 })
 
@@ -204,10 +210,15 @@ const { mutateAsync: mutateUpdateSkill, isPending: isUpdating } = useMutation({
 
     return { previous }
   },
-  onError: (_err, _vars, context) => {
+  onError: (err, _vars, context) => {
     if (context?.previous) {
       queryClient.setQueryData(['skills'], context.previous)
     }
+    const msg = (err as Error)?.message ?? 'Failed to update skill'
+    toastError(msg)
+  },
+  onSuccess: async () => {
+    toastSuccess('Skill updated')
   },
   onSettled: async () => {
     await queryClient.invalidateQueries({ queryKey: ['skills'] })
@@ -226,10 +237,15 @@ const { mutateAsync: mutateDeleteSkill, isPending: isDeleting } = useMutation({
 
     return { previous }
   },
-  onError: (_err, _vars, context) => {
+  onError: (err, _vars, context) => {
     if (context?.previous) {
       queryClient.setQueryData(['skills'], context.previous)
     }
+    const msg = (err as Error)?.message ?? 'Failed to delete skill'
+    toastError(msg)
+  },
+  onSuccess: async () => {
+    toastSuccess('Skill deleted')
   },
   onSettled: async () => {
     await queryClient.invalidateQueries({ queryKey: ['skills'] })

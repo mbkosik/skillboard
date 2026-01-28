@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router'
 import { createPinia } from 'pinia'
 import { VueQueryPlugin, vueQueryPlugin } from './plugins/vue-query'
+import 'vue-sonner/style.css'
 import './style.css'
 import useAuthStore from '@/stores/auth'
 
