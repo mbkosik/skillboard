@@ -1,6 +1,8 @@
 <template>
   <DefaultLayout>
-    <header class="mb-6">
+    <header class="mb-6 space-y-2">
+      <Button variant="ghost" size="sm" @click="goBack"> ← Back to dashboard </Button>
+
       <h2 class="text-3xl font-bold">Skill details</h2>
       <p class="mt-2 text-sm text-muted-foreground">View and update progress for a single skill.</p>
     </header>
@@ -83,8 +85,8 @@
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { ref, computed, watch, watchEffect } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import type { Skill } from '@/api/skills'
 import { getSkillById, updateSkill } from '@/api/skills'
@@ -92,6 +94,7 @@ import Label from '@/components/ui/label/Label.vue'
 import SkillProgressBar from '@/components/skills/SkillProgressBar.vue'
 
 const route = useRoute()
+const router = useRouter()
 const queryClient = useQueryClient()
 
 const rawId = route.params.id
@@ -160,6 +163,10 @@ async function onSubmit() {
 
 function resetInput() {
   if (skill.value) progressInput.value = skill.value.progress
+}
+
+function goBack() {
+  router.push({ name: 'dashboard' })
 }
 
 const loadErrorMessage = computed(() => loadError.value?.message ?? 'Failed to load skill')
