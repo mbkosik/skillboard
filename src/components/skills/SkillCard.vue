@@ -33,7 +33,7 @@ import type { Skill } from '@/api/skills'
 const { skill } = defineProps<{ skill: Skill }>()
 const emits = defineEmits<{
   (e: 'edit', payload: Skill): void
-  (e: 'delete', id: number): void
+  (e: 'delete', id: string): void
 }>()
 
 function onEdit() {

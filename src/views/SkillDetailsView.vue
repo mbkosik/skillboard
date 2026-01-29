@@ -95,7 +95,7 @@ const route = useRoute()
 const queryClient = useQueryClient()
 
 const rawId = route.params.id
-const id = Number(rawId)
+const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? '')
 
 const {
   data: skillData,
@@ -107,7 +107,7 @@ const {
 })
 
 const loadError = computed(() => {
-  if (!Number.isFinite(id) || id <= 0) return new Error('Invalid skill id')
+  if (!id || typeof id !== 'string' || !id.trim()) return new Error('Invalid skill id')
   return error.value ?? null
 })
 

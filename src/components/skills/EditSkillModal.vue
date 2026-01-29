@@ -60,7 +60,7 @@ const props = withDefaults(
 )
 
 const emits = defineEmits<{
-  (e: 'update', payload: { id: number; name: string; progress: number }): void
+  (e: 'update', payload: { id: string; name: string; progress: number }): void
   (e: 'update:open', open: boolean): void
 }>()
 

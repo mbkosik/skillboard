@@ -1,5 +1,5 @@
 export interface Skill {
-  id: number
+  id: string
   name: string
   progress: number
 }
@@ -25,7 +25,7 @@ export async function getSkills(): Promise<Skill[]> {
   return handleResponse<Skill[]>(res, endpoint)
 }
 
-export async function getSkillById(id: number): Promise<Skill> {
+export async function getSkillById(id: string): Promise<Skill> {
   const endpoint = `/skills/${id}`
   const res = await fetch(endpoint)
   return handleResponse<Skill>(res, endpoint)
@@ -52,7 +52,7 @@ export type UpdateSkillPayload = {
   progress: number
 }
 
-export async function updateSkill(id: number, payload: UpdateSkillPayload): Promise<Skill> {
+export async function updateSkill(id: string, payload: UpdateSkillPayload): Promise<Skill> {
   const endpoint = `/skills/${id}`
   const res = await fetch(endpoint, {
     method: 'PATCH',
@@ -63,7 +63,7 @@ export async function updateSkill(id: number, payload: UpdateSkillPayload): Prom
   return handleResponse<Skill>(res, endpoint)
 }
 
-export async function deleteSkill(id: number): Promise<void> {
+export async function deleteSkill(id: string): Promise<void> {
   const endpoint = `/skills/${id}`
   const res = await fetch(endpoint, { method: 'DELETE' })
   if (!res.ok) {

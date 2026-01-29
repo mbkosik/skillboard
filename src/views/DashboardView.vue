@@ -118,8 +118,10 @@ import CreateSkillModal from '@/components/skills/CreateSkillModal.vue'
 import EditSkillModal from '@/components/skills/EditSkillModal.vue'
 import DeleteConfirmDialog from '@/components/skills/DeleteConfirmDialog.vue'
 import { Card } from '@/components/ui/card'
+import { useRouter } from 'vue-router'
 
 const queryClient = useQueryClient()
+const router = useRouter()
 
 const { data, isLoading, error } = useQuery<Skill[], Error>({
   queryKey: ['skills'],
@@ -178,10 +180,8 @@ const hasActiveFilters = computed(
 )
 
 function resetFilters() {
-  search.value = ''
   rawSearch.value = ''
-  sort.value = 'name_asc'
-  progress.value = 'all'
+  router.replace({ query: {} })
 }
 
 const skillsRaw = computed(() => data?.value ?? [])
@@ -198,7 +198,7 @@ const filteredAndSorted = computed(() => {
 })
 
 const { mutateAsync: mutateUpdateSkill, isPending: isUpdating } = useMutation({
-  mutationFn: ({ id, payload }: { id: number; payload: UpdateSkillPayload }) =>
+  mutationFn: ({ id, payload }: { id: string; payload: UpdateSkillPayload }) =>
     updateSkill(id, payload),
   onMutate: async ({ id, payload }) => {
     await queryClient.cancelQueries({ queryKey: ['skills'] })
@@ -226,8 +226,8 @@ const { mutateAsync: mutateUpdateSkill, isPending: isUpdating } = useMutation({
 })
 
 const { mutateAsync: mutateDeleteSkill, isPending: isDeleting } = useMutation({
-  mutationFn: (id: number) => deleteSkill(id),
-  onMutate: async (id: number) => {
+  mutationFn: (id: string) => deleteSkill(id),
+  onMutate: async (id: string) => {
     await queryClient.cancelQueries({ queryKey: ['skills'] })
     const previous = queryClient.getQueryData<Skill[]>(['skills'])
 
@@ -261,20 +261,20 @@ function openEditModal(skill: Skill) {
   editOpen.value = true
 }
 
-function openDeleteDialog(id: number) {
+function openDeleteDialog(id: string) {
   const skill = data?.value?.find((s) => s.id === id) ?? null
   deleteSkillCandidate.value = skill
   deleteOpen.value = true
 }
 
-async function handleUpdate(payload: { id: number; name: string; progress: number }) {
+async function handleUpdate(payload: { id: string; name: string; progress: number }) {
   await mutateUpdateSkill({
     id: payload.id,
     payload: { name: payload.name, progress: payload.progress },
   })
 }
 
-async function handleDeleteConfirmed(id: number) {
+async function handleDeleteConfirmed(id: string) {
   await mutateDeleteSkill(id)
 }
 </script>

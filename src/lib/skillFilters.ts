@@ -22,15 +22,9 @@ export function filterSkills(skills: Skill[], progress: ProgressFilter) {
 export function sortSkills(skills: Skill[], sort: SortParam) {
   const result = skills.slice()
 
-  const compareByName = (a: Skill, b: Skill) => {
-    const r = a.name.localeCompare(b.name)
-    return r !== 0 ? r : a.id - b.id
-  }
+  const compareByName = (a: Skill, b: Skill) => a.name.localeCompare(b.name)
 
-  const compareByProgress = (a: Skill, b: Skill) => {
-    const r = a.progress - b.progress
-    return r !== 0 ? r : a.id - b.id
-  }
+  const compareByProgress = (a: Skill, b: Skill) => a.progress - b.progress
 
   switch (sort) {
     case 'name_asc':

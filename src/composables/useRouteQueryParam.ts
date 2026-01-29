@@ -22,11 +22,13 @@ export function useRouteQueryParam<T extends string>(
     },
     set(v: T) {
       const newQuery = { ...(route.query || {}) } as Record<string, string | string[] | undefined>
-      if (v === '') {
+
+      if (v === options.default) {
         delete newQuery[key]
       } else {
         newQuery[key] = v
       }
+
       router.replace({ query: newQuery })
     },
   })
