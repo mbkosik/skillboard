@@ -4,8 +4,8 @@
       <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
         <h1 class="text-lg font-semibold">Skillboard</h1>
 
-        <div class="flex items-center space-x-4" aria-hidden="true">
-          <!-- reserved for user actions (profile, logout, theme toggle) -->
+        <div class="flex items-center space-x-4">
+          <Switch v-model="isDark" aria-label="Toggle theme" />
         </div>
       </div>
     </header>
@@ -17,5 +17,14 @@
 </template>
 
 <script setup lang="ts">
-// Layout-only component. No logic here.
+import { computed } from 'vue'
+import { Switch } from '@/components/ui/switch'
+import useUIStore from '@/stores/ui'
+
+const ui = useUIStore()
+
+const isDark = computed({
+  get: () => ui.theme === 'dark',
+  set: (v: boolean) => ui.setTheme(v ? 'dark' : 'light'),
+})
 </script>

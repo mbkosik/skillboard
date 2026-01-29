@@ -6,8 +6,11 @@
     aria-valuemax="100"
     :aria-valuenow="clampedValue"
   >
-    <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-      <div :class="['h-2 transition-all', colorClass]" :style="{ width: clampedValue + '%' }"></div>
+    <div class="h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+      <div
+        :class="['h-2 transition-all duration-300 rounded-full', colorClass]"
+        :style="{ width: clampedValue + '%' }"
+      ></div>
     </div>
   </div>
 </template>
@@ -27,8 +30,10 @@ const clampedValue = computed(() => {
 })
 
 const colorClass = computed(() => {
-  if (clampedValue.value < 40) return 'bg-red-500'
-  if (clampedValue.value < 70) return 'bg-yellow-500'
-  return 'bg-green-500'
+  if (clampedValue.value < 40) return 'bg-red-500 dark:bg-red-400'
+
+  if (clampedValue.value < 70) return 'bg-yellow-500 dark:bg-yellow-400'
+
+  return 'bg-green-500 dark:bg-green-400'
 })
 </script>
