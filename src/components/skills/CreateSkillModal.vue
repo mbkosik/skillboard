@@ -1,5 +1,5 @@
 <template>
-  <Dialog v-model:open="open" @update:open="reset">
+  <Dialog v-model:open="openLocal">
     <DialogTrigger asChild>
       <Button>Add skill</Button>
     </DialogTrigger>
@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -64,13 +64,20 @@ import {
 
 import type { CreateSkillPayload } from '@/api/skills'
 
-const props = withDefaults(defineProps<{ loading?: boolean }>(), { loading: false })
+const props = withDefaults(defineProps<{ loading?: boolean; open?: boolean }>(), {
+  loading: false,
+  open: false,
+})
 
 const emits = defineEmits<{
   (e: 'create', payload: CreateSkillPayload): void
+  (e: 'update:open', open: boolean): void
 }>()
 
-const open = ref(false)
+const openLocal = computed({
+  get: () => props.open ?? false,
+  set: (v: boolean) => emits('update:open', v),
+})
 
 const form = reactive<{ name: string; progress: number }>({ name: '', progress: 0 })
 const errors = reactive<{ name?: string; progress?: string }>({})
@@ -99,16 +106,22 @@ function reset() {
   errors.progress = undefined
 }
 
+watch(
+  () => openLocal.value,
+  (v) => {
+    if (!v) reset()
+  }
+)
+
 function onCancel() {
-  open.value = false
+  openLocal.value = false
   reset()
 }
 
 function onSubmit() {
+  if (props.loading) return
   if (!validate()) return
   const payload: CreateSkillPayload = { name: form.name.trim(), progress: Number(form.progress) }
   emits('create', payload)
-  open.value = false
-  reset()
 }
 </script>

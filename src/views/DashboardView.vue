@@ -7,7 +7,12 @@
       </div>
 
       <div>
-        <CreateSkillModal :loading="isPending" @create="handleCreate" />
+        <CreateSkillModal
+          :open="createOpen"
+          @update:open="(v) => (createOpen = v)"
+          :loading="isCreating"
+          @create="handleCreate"
+        />
       </div>
     </header>
 
@@ -128,15 +133,39 @@ const { data, isLoading, error } = useQuery<Skill[], Error>({
   queryFn: getSkills,
 })
 
-const { mutateAsync: mutateCreateSkill, isPending } = useMutation({
+const createOpen = ref(false)
+
+const { mutateAsync: mutateCreateSkill, isPending: isCreating } = useMutation({
   mutationFn: (payload: CreateSkillPayload) => createSkill(payload),
-  onSuccess: async () => {
-    await queryClient.invalidateQueries({ queryKey: ['skills'] })
-    toastSuccess('Skill created')
+  onMutate: async (payload: CreateSkillPayload) => {
+    await queryClient.cancelQueries({ queryKey: ['skills'] })
+    const previous = queryClient.getQueryData<Skill[]>(['skills'])
+
+    const optimisticId = `temp-${Date.now()}`
+    const optimistic: Skill = { id: optimisticId, name: payload.name, progress: payload.progress }
+
+    queryClient.setQueryData<Skill[] | undefined>(['skills'], (old) =>
+      old ? [optimistic, ...old] : [optimistic]
+    )
+
+    return { previous, optimisticId }
   },
-  onError: (err: unknown) => {
+  onSuccess: (data: Skill, _vars, context: any) => {
+    queryClient.setQueryData<Skill[] | undefined>(['skills'], (old) =>
+      old ? old.map((s) => (s.id === context?.optimisticId ? data : s)) : old
+    )
+    toastSuccess('Skill created')
+    createOpen.value = false
+  },
+  onError: (err: unknown, _vars, context: any) => {
+    if (context?.previous) {
+      queryClient.setQueryData(['skills'], context.previous)
+    }
     const msg = (err as Error)?.message ?? 'Failed to create skill'
     toastError(msg)
+  },
+  onSettled: async () => {
+    await queryClient.invalidateQueries({ queryKey: ['skills'] })
   },
 })
 
