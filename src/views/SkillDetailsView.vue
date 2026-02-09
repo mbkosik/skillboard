@@ -17,11 +17,8 @@
       </div>
 
       <!-- Error -->
-      <div
-        v-else-if="loadError"
-        class="p-6 border rounded-lg bg-red-50 text-red-700 border-red-200"
-      >
-        <p class="text-sm">{{ loadErrorMessage }}</p>
+      <div v-else-if="loadErrorMessage">
+        <ErrorBox :message="loadErrorMessage" />
       </div>
 
       <!-- Content -->
@@ -86,6 +83,8 @@ import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ref, computed, watch } from 'vue'
+import ErrorBox from '@/components/ui/error/ErrorBox.vue'
+import { mapErrorToMessage } from '@/lib/errorMapper'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import type { Skill } from '@/api/skills'
@@ -149,6 +148,11 @@ const mutation = useMutation({
 
 const mutationError = ref<string | null>(null)
 
+const loadErrorMessage = computed(() => {
+  if (!loadError.value) return null
+  return mapErrorToMessage(loadError.value)
+})
+
 async function onSubmit() {
   mutationError.value = null
   const err = validationError.value
@@ -157,7 +161,7 @@ async function onSubmit() {
   try {
     await mutation.mutateAsync(n)
   } catch (e: any) {
-    mutationError.value = e?.message ?? 'Failed to update skill'
+    mutationError.value = mapErrorToMessage(e)
   }
 }
 
@@ -168,6 +172,4 @@ function resetInput() {
 function goBack() {
   router.push({ name: 'dashboard' })
 }
-
-const loadErrorMessage = computed(() => loadError.value?.message ?? 'Failed to load skill')
 </script>

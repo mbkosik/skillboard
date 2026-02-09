@@ -5,6 +5,7 @@
     </DialogTrigger>
 
     <DialogContent class="max-w-md">
+      <ErrorBox v-if="props.serverError" :message="props.serverError" />
       <DialogHeader>
         <DialogTitle>Add skill</DialogTitle>
       </DialogHeader>
@@ -49,7 +50,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue'
+import { reactive, computed, watch } from 'vue'
+import ErrorBox from '@/components/ui/error/ErrorBox.vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -64,10 +66,13 @@ import {
 
 import type { CreateSkillPayload } from '@/api/skills'
 
-const props = withDefaults(defineProps<{ loading?: boolean; open?: boolean }>(), {
-  loading: false,
-  open: false,
-})
+const props = withDefaults(
+  defineProps<{ loading?: boolean; open?: boolean; serverError?: string | null }>(),
+  {
+    loading: false,
+    open: false,
+  }
+)
 
 const emits = defineEmits<{
   (e: 'create', payload: CreateSkillPayload): void

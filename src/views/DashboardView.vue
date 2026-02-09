@@ -11,6 +11,7 @@
           :open="createOpen"
           @update:open="(v) => (createOpen = v)"
           :loading="isCreating"
+          :serverError="createErrorMessage"
           @create="handleCreate"
         />
       </div>
@@ -40,8 +41,8 @@
       </div>
 
       <!-- Error state -->
-      <div v-else-if="error" class="p-6 border rounded-lg bg-red-50 text-red-700 border-red-200">
-        <p class="text-sm">Failed to load skills: {{ error.message }}</p>
+      <div v-else-if="queryErrorMessage">
+        <ErrorBox :message="queryErrorMessage" />
       </div>
 
       <!-- Empty state: no skills at all -->
@@ -120,6 +121,8 @@ import {
 } from '@/api/skills'
 import SkillCard from '@/components/skills/SkillCard.vue'
 import CreateSkillModal from '@/components/skills/CreateSkillModal.vue'
+import ErrorBox from '@/components/ui/error/ErrorBox.vue'
+import { mapErrorToMessage } from '@/lib/errorMapper'
 import EditSkillModal from '@/components/skills/EditSkillModal.vue'
 import DeleteConfirmDialog from '@/components/skills/DeleteConfirmDialog.vue'
 import { Card } from '@/components/ui/card'
@@ -133,11 +136,19 @@ const { data, isLoading, error } = useQuery<Skill[], Error>({
   queryFn: getSkills,
 })
 
+const queryErrorMessage = computed(() => {
+  if (!error.value) return null
+  return mapErrorToMessage(error.value)
+})
+
 const createOpen = ref(false)
+
+const createErrorMessage = ref<string | null>(null)
 
 const { mutateAsync: mutateCreateSkill, isPending: isCreating } = useMutation({
   mutationFn: (payload: CreateSkillPayload) => createSkill(payload),
   onMutate: async (payload: CreateSkillPayload) => {
+    createErrorMessage.value = null
     await queryClient.cancelQueries({ queryKey: ['skills'] })
     const previous = queryClient.getQueryData<Skill[]>(['skills'])
 
@@ -161,7 +172,8 @@ const { mutateAsync: mutateCreateSkill, isPending: isCreating } = useMutation({
     if (context?.previous) {
       queryClient.setQueryData(['skills'], context.previous)
     }
-    const msg = (err as Error)?.message ?? 'Failed to create skill'
+    const msg = mapErrorToMessage(err)
+    createErrorMessage.value = msg
     toastError(msg)
   },
   onSettled: async () => {
@@ -243,7 +255,7 @@ const { mutateAsync: mutateUpdateSkill, isPending: isUpdating } = useMutation({
     if (context?.previous) {
       queryClient.setQueryData(['skills'], context.previous)
     }
-    const msg = (err as Error)?.message ?? 'Failed to update skill'
+    const msg = mapErrorToMessage(err)
     toastError(msg)
   },
   onSuccess: async () => {
@@ -270,7 +282,7 @@ const { mutateAsync: mutateDeleteSkill, isPending: isDeleting } = useMutation({
     if (context?.previous) {
       queryClient.setQueryData(['skills'], context.previous)
     }
-    const msg = (err as Error)?.message ?? 'Failed to delete skill'
+    const msg = mapErrorToMessage(err)
     toastError(msg)
   },
   onSuccess: async () => {
