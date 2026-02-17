@@ -52,7 +52,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 
-import type { Skill } from '@/api/skills'
+import type { Skill } from '@/types/skill'
 
 const props = withDefaults(
   defineProps<{ skill: Skill | null; open?: boolean; loading?: boolean }>(),

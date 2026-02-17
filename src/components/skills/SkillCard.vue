@@ -28,7 +28,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { RouterLink } from 'vue-router'
 import SkillProgressBar from './SkillProgressBar.vue'
-import type { Skill } from '@/api/skills'
+import type { Skill } from '@/types/skill'
 
 const { skill } = defineProps<{ skill: Skill }>()
 const emits = defineEmits<{

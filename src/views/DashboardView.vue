@@ -110,15 +110,8 @@ import {
   type SortParam,
   type ProgressFilter,
 } from '@/lib/skillFilters'
-import {
-  getSkills,
-  createSkill,
-  updateSkill,
-  deleteSkill,
-  type Skill,
-  type CreateSkillPayload,
-  type UpdateSkillPayload,
-} from '@/api/skills'
+import { getSkills, createSkill, updateSkill, deleteSkill } from '@/api/skills'
+import type { Skill, SkillId, CreateSkillPayload, UpdateSkillPayload } from '@/types/skill'
 import SkillCard from '@/components/skills/SkillCard.vue'
 import CreateSkillModal from '@/components/skills/CreateSkillModal.vue'
 import ErrorBox from '@/components/ui/error/ErrorBox.vue'
@@ -145,14 +138,21 @@ const createOpen = ref(false)
 
 const createErrorMessage = ref<string | null>(null)
 
-const { mutateAsync: mutateCreateSkill, isPending: isCreating } = useMutation({
+type CreateContext = { previous?: Skill[]; optimisticId: SkillId }
+
+const { mutateAsync: mutateCreateSkill, isPending: isCreating } = useMutation<
+  Skill,
+  Error,
+  CreateSkillPayload,
+  CreateContext
+>({
   mutationFn: (payload: CreateSkillPayload) => createSkill(payload),
   onMutate: async (payload: CreateSkillPayload) => {
     createErrorMessage.value = null
     await queryClient.cancelQueries({ queryKey: ['skills'] })
     const previous = queryClient.getQueryData<Skill[]>(['skills'])
 
-    const optimisticId = `temp-${Date.now()}`
+    const optimisticId = `temp-${Date.now()}` as unknown as SkillId
     const optimistic: Skill = { id: optimisticId, name: payload.name, progress: payload.progress }
 
     queryClient.setQueryData<Skill[] | undefined>(['skills'], (old) =>
@@ -161,14 +161,14 @@ const { mutateAsync: mutateCreateSkill, isPending: isCreating } = useMutation({
 
     return { previous, optimisticId }
   },
-  onSuccess: (data: Skill, _vars, context: any) => {
+  onSuccess: (data: Skill, _vars, context) => {
     queryClient.setQueryData<Skill[] | undefined>(['skills'], (old) =>
       old ? old.map((s) => (s.id === context?.optimisticId ? data : s)) : old
     )
     toastSuccess('Skill created')
     createOpen.value = false
   },
-  onError: (err: unknown, _vars, context: any) => {
+  onError: (err: unknown, _vars, context) => {
     if (context?.previous) {
       queryClient.setQueryData(['skills'], context.previous)
     }
@@ -238,8 +238,13 @@ const filteredAndSorted = computed(() => {
   return sortSkills(afterSearch, sort.value as SortParam)
 })
 
-const { mutateAsync: mutateUpdateSkill, isPending: isUpdating } = useMutation({
-  mutationFn: ({ id, payload }: { id: string; payload: UpdateSkillPayload }) =>
+const { mutateAsync: mutateUpdateSkill, isPending: isUpdating } = useMutation<
+  Skill,
+  Error,
+  { id: SkillId; payload: UpdateSkillPayload },
+  { previous?: Skill[] }
+>({
+  mutationFn: ({ id, payload }: { id: SkillId; payload: UpdateSkillPayload }) =>
     updateSkill(id, payload),
   onMutate: async ({ id, payload }) => {
     await queryClient.cancelQueries({ queryKey: ['skills'] })
@@ -266,9 +271,14 @@ const { mutateAsync: mutateUpdateSkill, isPending: isUpdating } = useMutation({
   },
 })
 
-const { mutateAsync: mutateDeleteSkill, isPending: isDeleting } = useMutation({
-  mutationFn: (id: string) => deleteSkill(id),
-  onMutate: async (id: string) => {
+const { mutateAsync: mutateDeleteSkill, isPending: isDeleting } = useMutation<
+  void,
+  Error,
+  SkillId,
+  { previous?: Skill[] }
+>({
+  mutationFn: (id: SkillId) => deleteSkill(id),
+  onMutate: async (id: SkillId) => {
     await queryClient.cancelQueries({ queryKey: ['skills'] })
     const previous = queryClient.getQueryData<Skill[]>(['skills'])
 
@@ -302,20 +312,20 @@ function openEditModal(skill: Skill) {
   editOpen.value = true
 }
 
-function openDeleteDialog(id: string) {
+function openDeleteDialog(id: SkillId) {
   const skill = data?.value?.find((s) => s.id === id) ?? null
   deleteSkillCandidate.value = skill
   deleteOpen.value = true
 }
 
-async function handleUpdate(payload: { id: string; name: string; progress: number }) {
+async function handleUpdate(payload: { id: SkillId; name: string; progress: number }) {
   await mutateUpdateSkill({
     id: payload.id,
     payload: { name: payload.name, progress: payload.progress },
   })
 }
 
-async function handleDeleteConfirmed(id: string) {
+async function handleDeleteConfirmed(id: SkillId) {
   await mutateDeleteSkill(id)
 }
 </script>

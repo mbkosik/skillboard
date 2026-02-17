@@ -87,7 +87,7 @@ import ErrorBox from '@/components/ui/error/ErrorBox.vue'
 import { mapErrorToMessage } from '@/lib/errorMapper'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
-import type { Skill } from '@/api/skills'
+import type { Skill, SkillId } from '@/types/skill'
 import { getSkillById, updateSkill } from '@/api/skills'
 import Label from '@/components/ui/label/Label.vue'
 import SkillProgressBar from '@/components/skills/SkillProgressBar.vue'
@@ -160,7 +160,7 @@ async function onSubmit() {
   const n = Number(progressInput.value)
   try {
     await mutation.mutateAsync(n)
-  } catch (e: any) {
+  } catch (e: unknown) {
     mutationError.value = mapErrorToMessage(e)
   }
 }

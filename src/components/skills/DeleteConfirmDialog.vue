@@ -39,7 +39,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 
-import type { Skill } from '@/api/skills'
+import type { Skill } from '@/types/skill'
 
 const props = withDefaults(
   defineProps<{ skill: Skill | null; open?: boolean; loading?: boolean }>(),

@@ -64,7 +64,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 
-import type { CreateSkillPayload } from '@/api/skills'
+import type { CreateSkillPayload } from '@/types/skill'
 
 const props = withDefaults(
   defineProps<{ loading?: boolean; open?: boolean; serverError?: string | null }>(),

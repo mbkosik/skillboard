@@ -1,10 +1,10 @@
-import type { Skill } from '@/api/skills'
-
-export type SortParam = 'name_asc' | 'name_desc' | 'progress_asc' | 'progress_desc'
-export type ProgressFilter = 'all' | '0-25' | '26-50' | '51-75' | '76-100'
+import type { Skill } from '@/types/skill'
 
 export const VALID_SORTS = ['name_asc', 'name_desc', 'progress_asc', 'progress_desc'] as const
+export type SortParam = (typeof VALID_SORTS)[number]
+
 export const VALID_PROGRESS = ['all', '0-25', '26-50', '51-75', '76-100'] as const
+export type ProgressFilter = (typeof VALID_PROGRESS)[number]
 
 export const PROGRESS_RANGES: Record<ProgressFilter, [number, number]> = {
   all: [0, 100],
