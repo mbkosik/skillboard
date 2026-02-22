@@ -9,23 +9,22 @@
 
     <section>
       <!-- Loading -->
-      <div
-        v-if="isLoading"
-        class="p-6 border rounded-lg bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-      >
-        <p class="text-sm text-muted-foreground">Loading skill…</p>
+      <div v-if="isLoading">
+        <SkillDetailsSkeleton />
       </div>
 
-      <!-- Error -->
+      <!-- Errors -->
+      <div v-else-if="!isValidId">
+        <ErrorBox :message="'Invalid skill id'" />
+      </div>
+
       <div v-else-if="loadErrorMessage">
         <ErrorBox :message="loadErrorMessage" />
       </div>
 
       <!-- Content -->
       <div v-else class="grid gap-4">
-        <div
-          class="p-6 border rounded-lg bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-        >
+        <Card class="p-6">
           <h3 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ skill?.name }}</h3>
           <p class="mt-1 text-sm text-muted-foreground">
             Current progress: <span class="font-medium">{{ skill?.progress }}%</span>
@@ -34,45 +33,33 @@
           <div class="mt-3">
             <SkillProgressBar :value="skill?.progress ?? 0" :label="skill?.name" />
           </div>
-        </div>
+        </Card>
 
-        <form
-          @submit.prevent="onSubmit"
-          class="p-6 border rounded-lg bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 max-w-md"
-        >
-          <h4 class="text-lg font-medium mb-3">Update progress</h4>
+        <Card class="p-6 max-w-md">
+          <form @submit.prevent="onSubmit">
+            <h4 class="text-lg font-medium mb-3">Update progress</h4>
 
-          <Label for="progress" class="block text-sm mb-2">Progress (0–100)</Label>
-          <Input
-            id="progress"
-            v-model="progressInput"
-            type="number"
-            min="0"
-            max="100"
-            :disabled="mutation.status.value === 'pending'"
-            class="mb-2"
-          />
+            <Label for="progress" class="block text-sm mb-2">Progress (0–100)</Label>
+            <Input
+              id="progress"
+              v-model="progressInput"
+              type="number"
+              min="0"
+              max="100"
+              :disabled="isUpdating"
+              class="mb-2"
+            />
 
-          <p v-if="validationError" class="text-sm text-red-600 mb-2">{{ validationError }}</p>
+            <p v-if="validationError" class="text-sm text-red-600 mb-2">{{ validationError }}</p>
 
-          <div class="flex gap-2">
-            <Button
-              :disabled="mutation.status.value === 'pending' || !!validationError"
-              type="submit"
-            >
-              Save
-            </Button>
-            <Button
-              variant="ghost"
-              @click="resetInput"
-              :disabled="mutation.status.value === 'pending'"
-            >
-              Reset
-            </Button>
-          </div>
+            <div class="flex gap-2">
+              <Button :disabled="isUpdating || !!validationError" type="submit">Save</Button>
+              <Button variant="ghost" @click="resetInput" :disabled="isUpdating">Reset</Button>
+            </div>
 
-          <p v-if="mutationError" class="text-sm text-red-600 mt-3">{{ mutationError }}</p>
-        </form>
+            <p v-if="mutationError" class="text-sm text-red-600 mt-3">{{ mutationError }}</p>
+          </form>
+        </Card>
       </div>
     </section>
   </DefaultLayout>
@@ -91,6 +78,8 @@ import type { Skill, SkillId } from '@/types/skill'
 import { getSkillById, updateSkill } from '@/api/skills'
 import Label from '@/components/ui/label/Label.vue'
 import SkillProgressBar from '@/components/skills/SkillProgressBar.vue'
+import SkillDetailsSkeleton from '@/components/skills/SkillDetailsSkeleton.vue'
+import { Card } from '@/components/ui/card'
 
 const route = useRoute()
 const router = useRouter()
@@ -99,6 +88,8 @@ const queryClient = useQueryClient()
 const rawId = route.params.id
 const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? '')
 
+const isValidId = computed(() => !!id && !!id.trim())
+
 const {
   data: skillData,
   isLoading,
@@ -106,11 +97,7 @@ const {
 } = useQuery<Skill, Error>({
   queryKey: ['skills', id],
   queryFn: () => getSkillById(id),
-})
-
-const loadError = computed(() => {
-  if (!id || typeof id !== 'string' || !id.trim()) return new Error('Invalid skill id')
-  return error.value ?? null
+  enabled: isValidId.value,
 })
 
 const skill = computed(() => skillData.value ?? null)
@@ -125,14 +112,14 @@ watch(
   { immediate: true }
 )
 
-const validationError = computed(() => {
+const validationError = computed<string | null>(() => {
   if (progressInput.value === '') {
     return 'Progress is required'
   }
   const n = Number(progressInput.value)
   if (!Number.isFinite(n)) return 'Progress must be a number'
   if (n < 0 || n > 100) return 'Progress must be between 0 and 100'
-  return ''
+  return null
 })
 
 const mutation = useMutation({
@@ -146,11 +133,13 @@ const mutation = useMutation({
   },
 })
 
+const isUpdating = computed(() => mutation.status.value === 'pending')
+
 const mutationError = ref<string | null>(null)
 
 const loadErrorMessage = computed(() => {
-  if (!loadError.value) return null
-  return mapErrorToMessage(loadError.value)
+  if (!error.value) return null
+  return mapErrorToMessage(error.value)
 })
 
 async function onSubmit() {

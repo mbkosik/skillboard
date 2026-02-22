@@ -12,8 +12,24 @@
       </RouterLink>
 
       <div class="flex items-center gap-2">
-        <Button size="sm" variant="ghost" @click="onEdit">Edit</Button>
-        <Button size="sm" variant="destructive" @click="onDelete">Delete</Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          @click="onEdit"
+          :disabled="isLocked"
+          :class="isLocked ? 'opacity-50 cursor-not-allowed' : ''"
+        >
+          Edit
+        </Button>
+        <Button
+          size="sm"
+          variant="destructive"
+          @click="onDelete"
+          :disabled="isLocked"
+          :class="isLocked ? 'opacity-50 cursor-not-allowed' : ''"
+        >
+          Delete
+        </Button>
       </div>
     </div>
 
@@ -28,19 +44,28 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { RouterLink } from 'vue-router'
 import SkillProgressBar from './SkillProgressBar.vue'
-import type { Skill } from '@/types/skill'
+import type { Skill, SkillId } from '@/types/skill'
+import { computed } from 'vue'
 
-const { skill } = defineProps<{ skill: Skill }>()
+const props = withDefaults(
+  defineProps<{ skill: Skill; updatingId?: SkillId | null; deletingId?: SkillId | null }>(),
+  { updatingId: null, deletingId: null }
+)
+
+const isLocked = computed(
+  () => props.updatingId === props.skill.id || props.deletingId === props.skill.id
+)
+
 const emits = defineEmits<{
   (e: 'edit', payload: Skill): void
-  (e: 'delete', id: string): void
+  (e: 'delete', id: SkillId): void
 }>()
 
 function onEdit() {
-  emits('edit', skill)
+  emits('edit', props.skill)
 }
 
 function onDelete() {
-  emits('delete', skill.id)
+  emits('delete', props.skill.id)
 }
 </script>

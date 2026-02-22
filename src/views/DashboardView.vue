@@ -33,11 +33,8 @@
       <h3 id="skills-heading" class="text-lg font-medium mb-2">Skills list</h3>
 
       <!-- Loading state -->
-      <div
-        v-if="isLoading"
-        class="p-6 border rounded-lg bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-      >
-        <p class="text-sm text-muted-foreground">Loading skills…</p>
+      <div v-if="isLoading" class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <SkillCardSkeleton v-for="n in 6" :key="n" />
       </div>
 
       <!-- Error state -->
@@ -68,6 +65,8 @@
           v-for="skill in filteredAndSorted"
           :key="skill.id"
           :skill="skill"
+          :updating-id="updatingId"
+          :deleting-id="deletingId"
           @edit="openEditModal"
           @delete="openDeleteDialog"
         />
@@ -113,6 +112,7 @@ import {
 import { getSkills, createSkill, updateSkill, deleteSkill } from '@/api/skills'
 import type { Skill, SkillId, CreateSkillPayload, UpdateSkillPayload } from '@/types/skill'
 import SkillCard from '@/components/skills/SkillCard.vue'
+import SkillCardSkeleton from '@/components/skills/SkillCardSkeleton.vue'
 import CreateSkillModal from '@/components/skills/CreateSkillModal.vue'
 import ErrorBox from '@/components/ui/error/ErrorBox.vue'
 import { mapErrorToMessage } from '@/lib/errorMapper'
@@ -152,7 +152,7 @@ const { mutateAsync: mutateCreateSkill, isPending: isCreating } = useMutation<
     await queryClient.cancelQueries({ queryKey: ['skills'] })
     const previous = queryClient.getQueryData<Skill[]>(['skills'])
 
-    const optimisticId = `temp-${Date.now()}` as unknown as SkillId
+    const optimisticId = `temp-${Date.now()}`
     const optimistic: Skill = { id: optimisticId, name: payload.name, progress: payload.progress }
 
     queryClient.setQueryData<Skill[] | undefined>(['skills'], (old) =>
@@ -185,6 +185,8 @@ const selectedSkill = ref<Skill | null>(null)
 const editOpen = ref(false)
 const deleteSkillCandidate = ref<Skill | null>(null)
 const deleteOpen = ref(false)
+const updatingId = ref<SkillId | null>(null)
+const deletingId = ref<SkillId | null>(null)
 
 const sort = useRouteQueryParam<SortParam>('sort', {
   default: 'name_asc',
@@ -250,6 +252,8 @@ const { mutateAsync: mutateUpdateSkill, isPending: isUpdating } = useMutation<
     await queryClient.cancelQueries({ queryKey: ['skills'] })
     const previous = queryClient.getQueryData<Skill[]>(['skills'])
 
+    updatingId.value = id
+
     queryClient.setQueryData<Skill[] | undefined>(['skills'], (old) =>
       old ? old.map((s) => (s.id === id ? { ...s, ...payload } : s)) : old
     )
@@ -267,6 +271,7 @@ const { mutateAsync: mutateUpdateSkill, isPending: isUpdating } = useMutation<
     toastSuccess('Skill updated')
   },
   onSettled: async () => {
+    updatingId.value = null
     await queryClient.invalidateQueries({ queryKey: ['skills'] })
   },
 })
@@ -281,6 +286,8 @@ const { mutateAsync: mutateDeleteSkill, isPending: isDeleting } = useMutation<
   onMutate: async (id: SkillId) => {
     await queryClient.cancelQueries({ queryKey: ['skills'] })
     const previous = queryClient.getQueryData<Skill[]>(['skills'])
+
+    deletingId.value = id
 
     queryClient.setQueryData<Skill[] | undefined>(['skills'], (old) =>
       old ? old.filter((s) => s.id !== id) : old
@@ -299,6 +306,7 @@ const { mutateAsync: mutateDeleteSkill, isPending: isDeleting } = useMutation<
     toastSuccess('Skill deleted')
   },
   onSettled: async () => {
+    deletingId.value = null
     await queryClient.invalidateQueries({ queryKey: ['skills'] })
   },
 })
